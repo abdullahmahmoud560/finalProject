@@ -17,7 +17,6 @@ namespace finalProject.Controllers
         [HttpPost]
         public async Task<IActionResult> logout()
         {
-            DateTime.UtcNow.AddMinutes(0);
             return Ok();
         }
     }

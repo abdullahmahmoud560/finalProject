@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Win32;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -14,6 +15,13 @@ using System.Text;
 
 namespace finalProject.Controllers
 {
+    public class ApiResponse
+    {
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public object Data { get; set; } = null; 
+    }
+
     [Route("api/auth/login")]
     [ApiController]
     public class LoginController : ControllerBase
@@ -27,37 +35,36 @@ namespace finalProject.Controllers
             this.configuration = configuration;
         }
 
-        [HttpGet]
-        [Authorize]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "John Doe", "Jane Doe" };
-        }
-
         [HttpPost]
         public async Task<IActionResult> login([FromBody] DTOlogin login)
         {
-            Register? user = await _db.registers.SingleOrDefaultAsync(l => l.Email == login.email);
-
-            if (user != null && BCrypt.Net.BCrypt.Verify(login.password, user.Password))
+            try
             {
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:secretKey"]));
-                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-                var tokeOptions = new JwtSecurityToken(
-                    issuer: configuration["JWT:Issuer"],
-                    audience: configuration["JWT:Audience"],
-                    claims: new List<Claim>() {
-                   new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                   new Claim(ClaimTypes.Email, login.email),
-                   new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                   new Claim(JwtRegisteredClaimNames.Exp, DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds().ToString())
-                    },
-                    signingCredentials: signinCredentials
-                );
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-                return Ok(new AuthenticatedResponse { Token = tokenString });
+                Register? user = await _db.registers.SingleOrDefaultAsync(l => l.Email == login.email);
+
+                if (user != null && BCrypt.Net.BCrypt.Verify(login.password, user.Password))
+                {
+                    var userInfo = await _db.registers.Where(info => info.Email == login.email).ToListAsync();
+                    Token token = new Token(configuration);
+                    userInfo info = new userInfo();
+                    info.Id = userInfo[0].Id;
+                    info.firstName = userInfo[0].FirstName;
+                    info.lasttName = userInfo[0].LastName;
+                    info.email = userInfo[0].Email;
+                    user.Token = token.GenerateToken(user.Id, login.email);
+                    info.token = userInfo[0].Token;
+                    info.role = userInfo[0].role;
+                    await _db.SaveChangesAsync();
+                    return Ok(new ApiResponse
+                    {
+                        Data = info,
+                    });
+                }
+                return Unauthorized();
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
-            return Unauthorized();
 
         }
     }

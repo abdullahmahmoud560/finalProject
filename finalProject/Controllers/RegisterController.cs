@@ -20,6 +20,7 @@ namespace finalProject.Controllers
         [HttpPost("admin/register")]
         public async Task<IActionResult> RegisterNewUser(DTOregister user)
         {
+
             if (ModelState.IsValid && user != null)
             {
                 Register register = new()
@@ -27,11 +28,17 @@ namespace finalProject.Controllers
                     FirstName = user.firstName,
                     LastName = user.lastName,
                     Email = user.email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(user.password)
+                    Password = BCrypt.Net.BCrypt.HashPassword(user.password),
+                    role = "Admin",
+                    Token = "null"
                 };
                 await _db.AddAsync(register);
                 await _db.SaveChangesAsync();
-                return Ok("Succss");
+                return Ok(new ApiResponse
+                {
+                    Message = "Succss",
+                });
+               
             }
             return BadRequest(ModelState);
         }
@@ -46,11 +53,16 @@ namespace finalProject.Controllers
                     FirstName = user.firstName,
                     LastName = user.lastName,
                     Email = user.email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(user.password)
+                    Password = BCrypt.Net.BCrypt.HashPassword(user.password),
+                    role = "Student",
+                    Token = "null"
                 };
                 await _db.AddAsync(register);
                 await _db.SaveChangesAsync();
-                return Ok("Succss");
+                return Ok(new ApiResponse
+                {
+                    Message = "Succss",
+                });
             }
             return BadRequest(ModelState);
         }

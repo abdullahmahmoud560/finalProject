@@ -6,6 +6,5 @@ namespace finalProject.Models
     {
         [EmailAddress]
         public string email { get; set; }
-        public string ClientUrl { get; set; }
     }
 }

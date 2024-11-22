@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using finalProject.Data;
 
@@ -10,9 +11,11 @@ using finalProject.Data;
 namespace finalProject.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20241122105213_allTable")]
+    partial class allTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,7 +45,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("AI Requirements_Compulsory", (string)null);
+                    b.ToTable("AI Requirements_Compulsory");
                 });
 
             modelBuilder.Entity("finalProject.Data.AI_Electives", b =>
@@ -66,7 +69,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("AI Requirements_Electives", (string)null);
+                    b.ToTable("AI Requirements_Electives");
                 });
 
             modelBuilder.Entity("finalProject.Data.CS_Compulsory", b =>
@@ -90,7 +93,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("CS Requirements_Compulsory", (string)null);
+                    b.ToTable("CS Requirements_Compulsory");
                 });
 
             modelBuilder.Entity("finalProject.Data.CS_Electives", b =>
@@ -114,7 +117,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("CS Requirements_Electives", (string)null);
+                    b.ToTable("CS Requirements_Electives");
                 });
 
             modelBuilder.Entity("finalProject.Data.Faculty_Compulsory", b =>
@@ -138,7 +141,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("Faculty Requirements_Compulsory", (string)null);
+                    b.ToTable("Faculty Requirements_Compulsory");
                 });
 
             modelBuilder.Entity("finalProject.Data.Faculty_Electives", b =>
@@ -162,7 +165,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("Faculty Requirements_Electives", (string)null);
+                    b.ToTable("Faculty Requirements_Electives");
                 });
 
             modelBuilder.Entity("finalProject.Data.General_Compulsory", b =>
@@ -186,7 +189,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("General Requirements_Compulsory", (string)null);
+                    b.ToTable("General Requirements_Compulsory");
                 });
 
             modelBuilder.Entity("finalProject.Data.General_Electives", b =>
@@ -210,7 +213,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("General Requirements_Electives", (string)null);
+                    b.ToTable("General Requirements_Electives");
                 });
 
             modelBuilder.Entity("finalProject.Data.IS_Compulsory", b =>
@@ -234,7 +237,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("IS Requirements_Compulsory", (string)null);
+                    b.ToTable("IS Requirements_Compulsory");
                 });
 
             modelBuilder.Entity("finalProject.Data.IS_Electives", b =>
@@ -258,7 +261,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("IS Requirements_Electives", (string)null);
+                    b.ToTable("IS Requirements_Electives");
                 });
 
             modelBuilder.Entity("finalProject.Data.IT_Compulsory", b =>
@@ -282,7 +285,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("IT Requirements_Compulsory", (string)null);
+                    b.ToTable("IT Requirements_Compulsory");
                 });
 
             modelBuilder.Entity("finalProject.Data.IT_Electives", b =>
@@ -306,7 +309,7 @@ namespace finalProject.Migrations
                     b.HasIndex("code")
                         .IsUnique();
 
-                    b.ToTable("IT Requirements_Electives", (string)null);
+                    b.ToTable("IT Requirements_Electives");
                 });
 
             modelBuilder.Entity("finalProject.Data.Register", b =>
@@ -346,7 +349,7 @@ namespace finalProject.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("registers", (string)null);
+                    b.ToTable("registers");
                 });
 #pragma warning restore 612, 618
         }

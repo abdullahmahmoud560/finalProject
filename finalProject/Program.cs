@@ -10,9 +10,10 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 builder.Services.AddDbContext<DB>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Connection")));
+    options.UseMySql(builder.Configuration.GetConnectionString("Connection"),
+        new MySqlServerVersion(new Version(8, 0, 21))));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -39,7 +40,6 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 
-    // إضافة تعريف الأمان (Bearer Token)
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -65,19 +65,28 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+builder.Services.AddCors(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.AddPolicy("MyCors",
+            builder => builder.WithOrigins() 
+                              .AllowAnyMethod()
+                              .AllowAnyHeader());
+});
 
-app.UseHttpsRedirection();
+builder.Services.AddTransient<EmailService>();
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.HttpsPort = 443;
+});
 
+
+var app = builder.Build();
+app.UseHttpsRedirection(); 
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
+app.UseCors("MyCors");
 app.Run();

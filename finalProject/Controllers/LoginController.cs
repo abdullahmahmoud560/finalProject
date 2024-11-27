@@ -19,8 +19,10 @@ namespace finalProject.Controllers
     {
         public string Status { get; set; }
         public string Message { get; set; }
-        public object Data { get; set; } = null; 
+        public object Data { get; set; } = null;
     }
+
+
 
     [Route("api/auth/login")]
     [ApiController]
@@ -36,36 +38,48 @@ namespace finalProject.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> login([FromBody] DTOlogin login)
+        public async Task<IActionResult> Login([FromBody] DTOlogin login)
         {
             try
             {
-                Register? user = await _db.registers.SingleOrDefaultAsync(l => l.Email == login.email);
+                var user = await _db.students.SingleOrDefaultAsync(l => l.Email == login.email);
 
                 if (user != null && BCrypt.Net.BCrypt.Verify(login.password, user.Password))
                 {
-                    var userInfo = await _db.registers.Where(info => info.Email == login.email).ToListAsync();
                     Token token = new Token(configuration);
+                    var generatedToken = token.GenerateToken(user);
                     userInfo info = new userInfo();
-                    info.Id = userInfo[0].Id;
-                    info.firstName = userInfo[0].FirstName;
-                    info.lasttName = userInfo[0].LastName;
-                    info.email = userInfo[0].Email;
-                    user.Token = token.GenerateToken(user.Id, login.email);
-                    info.token = userInfo[0].Token;
-                    info.role = userInfo[0].role;
+
+                    user.Token = generatedToken;
                     await _db.SaveChangesAsync();
+
+                    info.token = user.Token;
+                    info.role = user.role;
+                    info.firstName = user.FirstName;
+                    info.lastName = user.lastName;
+                    info.email = user.Email;
                     return Ok(new ApiResponse
                     {
                         Data = info,
+                        Message = "Token generated and stored successfully"
                     });
                 }
-                return Unauthorized();
-            }catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
+                else
+                {
+                    return Unauthorized(new ApiResponse
+                    {
+                        Message = "Invalid email or password"
+                    });
+                }
             }
-
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Message = "An error occurred",
+                    Data = ex.Message
+                });
+            }
         }
     }
 }

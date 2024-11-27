@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using finalProject.Data;
 
@@ -11,9 +12,11 @@ using finalProject.Data;
 namespace finalProject.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20241125010513_updateTableStudent")]
+    partial class updateTableStudent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,12 +305,13 @@ namespace finalProject.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<byte[]>("ProfilePic")
-                        .HasColumnType("longblob");
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -322,12 +326,11 @@ namespace finalProject.Migrations
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
-                    b.Property<string>("lastName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("level")
                         .HasColumnType("longtext");
+
+                    b.Property<byte[]>("profilePic")
+                        .HasColumnType("longblob");
 
                     b.Property<string>("role")
                         .IsRequired()
@@ -339,70 +342,6 @@ namespace finalProject.Migrations
                         .IsUnique();
 
                     b.ToTable("Students");
-                });
-
-            modelBuilder.Entity("finalProject.Data.StudentSubject", b =>
-                {
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubjectCode")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("grade")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("StudentId", "SubjectCode");
-
-                    b.HasIndex("SubjectCode");
-
-                    b.ToTable("StudentSubjects");
-                });
-
-            modelBuilder.Entity("finalProject.Data.Subject", b =>
-                {
-                    b.Property<string>("code")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("course_Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("hours")
-                        .HasColumnType("int");
-
-                    b.HasKey("code");
-
-                    b.ToTable("Subjects");
-                });
-
-            modelBuilder.Entity("finalProject.Data.StudentSubject", b =>
-                {
-                    b.HasOne("finalProject.Data.Student", "Student")
-                        .WithMany("StudentSubjects")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("finalProject.Data.Subject", "Subject")
-                        .WithMany("StudentSubjects")
-                        .HasForeignKey("SubjectCode")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Student");
-
-                    b.Navigation("Subject");
-                });
-
-            modelBuilder.Entity("finalProject.Data.Student", b =>
-                {
-                    b.Navigation("StudentSubjects");
-                });
-
-            modelBuilder.Entity("finalProject.Data.Subject", b =>
-                {
-                    b.Navigation("StudentSubjects");
                 });
 #pragma warning restore 612, 618
         }

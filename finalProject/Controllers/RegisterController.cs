@@ -16,17 +16,16 @@ namespace finalProject.Controllers
 
         private readonly DB _db;
 
-
         [HttpPost("admin/register")]
         public async Task<IActionResult> RegisterNewUser(DTOregister user)
         {
 
             if (ModelState.IsValid && user != null)
             {
-                Register register = new()
+                Student register = new()
                 {
                     FirstName = user.firstName,
-                    LastName = user.lastName,
+                    lastName = user.lastName,
                     Email = user.email,
                     Password = BCrypt.Net.BCrypt.HashPassword(user.password),
                     role = "Admin",
@@ -48,10 +47,10 @@ namespace finalProject.Controllers
         {
             if (ModelState.IsValid && user != null)
             {
-                Register register = new()
+                Student register = new()
                 {
                     FirstName = user.firstName,
-                    LastName = user.lastName,
+                    lastName = user.lastName,
                     Email = user.email,
                     Password = BCrypt.Net.BCrypt.HashPassword(user.password),
                     role = "Student",

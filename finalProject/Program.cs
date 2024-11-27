@@ -12,8 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddDbContext<DB>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("Connection"),
-        new MySqlServerVersion(new Version(8, 0, 21))));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("Connection"),
+        new MySqlServerVersion(new Version(8, 0, 21))
+    ));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -68,9 +70,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCors",
-            builder => builder.WithOrigins() 
+            builder => builder.WithOrigins("https://edu-guide-ai.vercel.app") 
                               .AllowAnyMethod()
-                              .AllowAnyHeader());
+    .WithHeaders("Authorization", "Content-Type"));
 });
 
 builder.Services.AddTransient<EmailService>();

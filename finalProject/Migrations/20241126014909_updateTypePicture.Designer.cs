@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using finalProject.Data;
 
@@ -11,9 +12,11 @@ using finalProject.Data;
 namespace finalProject.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20241126014909_updateTypePicture")]
+    partial class updateTypePicture
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -306,9 +309,6 @@ namespace finalProject.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<byte[]>("ProfilePic")
-                        .HasColumnType("longblob");
-
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -327,6 +327,10 @@ namespace finalProject.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("level")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("picture")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("role")

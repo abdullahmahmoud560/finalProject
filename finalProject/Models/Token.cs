@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using finalProject.Data;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,34 +8,44 @@ namespace finalProject.Models
 {
     public class Token
     {
-        readonly IConfiguration configuration;
+        private readonly IConfiguration _configuration;
+
         public Token(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            _configuration = configuration;
         }
-        public string GenerateToken(int Id, string email)
+
+        public string GenerateToken(Student infoStudnet)
         {
             try
             {
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:secretKey"]));
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:secretKey"]));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                var claims = new List<Claim>
+                {
+                    new Claim("id", infoStudnet.Id.ToString()), 
+                    new Claim("email", infoStudnet.Email), 
+                    new Claim("firstName", infoStudnet.FirstName), 
+                    new Claim("lastName", infoStudnet.lastName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) 
+                };
+
                 var tokeOptions = new JwtSecurityToken(
-                    issuer: configuration["JWT:Issuer"],
-                    audience: configuration["JWT:Audience"],
-                    claims: new List<Claim>() {
-                   new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
-                   new Claim(ClaimTypes.Email, email),
-                   new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                   new Claim(JwtRegisteredClaimNames.Exp, DateTimeOffset.UtcNow.AddHours(10).ToUnixTimeSeconds().ToString())
-                    },
+                    issuer: _configuration["JWT:Issuer"],
+                    audience: _configuration["JWT:Audience"],
+                    claims: claims,
+                    expires: DateTime.UtcNow.AddHours(10), 
                     signingCredentials: signinCredentials
                 );
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-                return tokenString;
-            }catch(Exception ex)
+
+                return new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+            }
+            catch (Exception ex)
             {
-                return(ex.Message);
+                return ex.Message;
             }
         }
+
     }
 }

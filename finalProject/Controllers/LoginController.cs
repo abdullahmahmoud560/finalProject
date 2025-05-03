@@ -1,28 +1,14 @@
 ﻿using finalProject.Data;
-using finalProject.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
+using finalProject.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Win32;
-using System.Data;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace finalProject.Controllers
 {
-    public class ApiResponse
-    {
-        public string Status { get; set; }
-        public string Message { get; set; }
-        public object Data { get; set; } = null;
-    }
-
-
 
     [Route("api/auth/login")]
     [ApiController]
@@ -30,11 +16,15 @@ namespace finalProject.Controllers
     {
         private readonly DB _db;
         private readonly IConfiguration configuration;
+        private readonly HttpClient _httpClient;
+        private readonly Token _token;
 
-        public LoginController(DB db, IConfiguration configuration)
+        public LoginController(DB db, IConfiguration configuration, HttpClient httpClient, Token token)
         {
             _db = db;
             this.configuration = configuration;
+            _httpClient = httpClient;
+            _token = token;
         }
 
         [HttpPost]
@@ -44,24 +34,21 @@ namespace finalProject.Controllers
             {
                 var user = await _db.students.SingleOrDefaultAsync(l => l.Email == login.email);
 
-                if (user != null && BCrypt.Net.BCrypt.Verify(login.password, user.Password))
+                if (user != null && BCrypt.Net.BCrypt.Verify(login.password, user.Password) && user.isActive == true)
                 {
-                    Token token = new Token(configuration);
-                    var generatedToken = token.GenerateToken(user);
                     userInfo info = new userInfo();
-
-                    user.Token = generatedToken;
+                    info.role = user.role!;
+                    info.firstName = user.FirstName!;
+                    info.lastName = user.lastName!;
+                    info.email = user.Email!;
+                    var token = _token.GenerateToken(user);
+                    user.Token = token;
+                    _db.students.Update(user); 
                     await _db.SaveChangesAsync();
-
-                    info.token = user.Token;
-                    info.role = user.role;
-                    info.firstName = user.FirstName;
-                    info.lastName = user.lastName;
-                    info.email = user.Email;
+                    info.token = token;
                     return Ok(new ApiResponse
                     {
                         Data = info,
-                        Message = "Token generated and stored successfully"
                     });
                 }
                 else
@@ -81,6 +68,38 @@ namespace finalProject.Controllers
                 });
             }
         }
+
+        [HttpPost("Chat-Bot")]
+        public async Task<IActionResult> task(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                return BadRequest();
+            }
+            else
+            {
+                var requestBody = new
+                {
+                    inputs = message,
+                    parameters = new { max_length = 200 }
+                };
+
+                string jsonBody = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                // إضافة مفتاح API
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer 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");
+
+                // إرسال الطلب
+                HttpResponseMessage response = await _httpClient.PostAsync("https://api-inference.huggingface.co/models/gpt2", content);
+
+                // قراءة الرد
+                string responseContent = await response.Content.ReadAsStringAsync();
+                return Ok(responseContent);
+
+            }
+        }
+
     }
 }
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using finalProject.Data;
 
@@ -11,9 +12,11 @@ using finalProject.Data;
 namespace finalProject.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20250415171102_updateTales")]
+    partial class updateTales
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,6 +31,9 @@ namespace finalProject.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("course_Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("grade")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("hours")
@@ -49,6 +55,9 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
@@ -66,6 +75,9 @@ namespace finalProject.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("course_Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("grade")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("hours")
@@ -87,6 +99,9 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
@@ -104,6 +119,9 @@ namespace finalProject.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("course_Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("grade")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("hours")
@@ -125,6 +143,9 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
@@ -142,6 +163,9 @@ namespace finalProject.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("course_Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("grade")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("hours")
@@ -163,6 +187,9 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
@@ -180,6 +207,9 @@ namespace finalProject.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("course_Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("grade")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("hours")
@@ -201,6 +231,9 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
@@ -220,6 +253,9 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
@@ -237,6 +273,9 @@ namespace finalProject.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("course_Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("grade")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("hours")
@@ -267,14 +306,8 @@ namespace finalProject.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("StudentSubjectStudentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StudentSubjectSubjectCode")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("SubjectCode")
-                        .HasColumnType("longtext");
+                    b.Property<byte[]>("ProfilePic")
+                        .HasColumnType("longblob");
 
                     b.Property<string>("Token")
                         .HasColumnType("longtext");
@@ -282,16 +315,16 @@ namespace finalProject.Migrations
                     b.Property<string>("department")
                         .HasColumnType("longtext");
 
-                    b.Property<double?>("gpa")
-                        .HasColumnType("double");
+                    b.Property<float?>("gpa")
+                        .HasColumnType("float");
 
                     b.Property<int?>("hours")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("isActive")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("lastName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("level")
                         .HasColumnType("longtext");
 
                     b.Property<string>("role")
@@ -302,9 +335,7 @@ namespace finalProject.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("StudentSubjectStudentId", "StudentSubjectSubjectCode");
-
-                    b.ToTable("students");
+                    b.ToTable("Students");
                 });
 
             modelBuilder.Entity("finalProject.Models.StudentSubject", b =>
@@ -333,21 +364,15 @@ namespace finalProject.Migrations
                     b.Property<string>("course_Name")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("grade")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("hours")
                         .HasColumnType("int");
 
                     b.HasKey("code");
 
                     b.ToTable("Subjects");
-                });
-
-            modelBuilder.Entity("finalProject.Models.Student", b =>
-                {
-                    b.HasOne("finalProject.Models.StudentSubject", "StudentSubject")
-                        .WithMany("students")
-                        .HasForeignKey("StudentSubjectStudentId", "StudentSubjectSubjectCode");
-
-                    b.Navigation("StudentSubject");
                 });
 
             modelBuilder.Entity("finalProject.Models.StudentSubject", b =>
@@ -372,11 +397,6 @@ namespace finalProject.Migrations
             modelBuilder.Entity("finalProject.Models.Student", b =>
                 {
                     b.Navigation("StudentSubjects");
-                });
-
-            modelBuilder.Entity("finalProject.Models.StudentSubject", b =>
-                {
-                    b.Navigation("students");
                 });
 
             modelBuilder.Entity("finalProject.Models.Subject", b =>

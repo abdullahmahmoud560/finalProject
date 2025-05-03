@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace finalProject.Models
+namespace finalProject.DTO
 {
     public class DTOlogin
     {
         [EmailAddress]
-        public string email { get; set; }
-        public string password { get; set; }
+        public string? email { get; set; }
+        public string? password { get; set; }
     }
 }

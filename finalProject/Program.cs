@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using finalProject.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddDbContext<DB>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpClient(); // إضافة HttpClient
+builder.Services.AddScoped<Token>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -35,7 +38,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secretKey"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secretKey"]!))
     };
 });
 builder.Services.AddSwaggerGen(c =>
@@ -70,11 +73,11 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCors",
-            builder => builder.WithOrigins("https://edu-guide-ai.vercel.app") 
+            builder => builder.WithOrigins("https://edu-guide-ai.vercel.app", "https://guido-hazel.vercel.app","http://localhost:4200") 
                               .AllowAnyMethod()
     .WithHeaders("Authorization", "Content-Type"));
 });
-
+builder.Services.AddScoped<Functions>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpsRedirection(options =>

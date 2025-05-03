@@ -1,17 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace finalProject.Data
+namespace finalProject.Models
 {
     public class Show_Subjects
     {
         [Key]
-        public string code { get; set; }
-        public string course_Name { get; set; }
-        public string hours { get; set; }
-        public string prerequest { get; set; }
+        public string? code { get; set; }
+        public string? course_Name { get; set; }
+        public int? hours { get; set; }
+        public string? prerequest { get; set; }
         [NotMapped]
-        public string grade { get; set; }
+        public string? grade { get; set; }
     }
 
     [Table("AI Requirements_Compulsory")]

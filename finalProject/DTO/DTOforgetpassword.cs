@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace finalProject.Models
+namespace finalProject.DTO
 {
     public class DTOforgetpassword
     {
         [EmailAddress]
-        public string email { get; set; }
+        public string? email { get; set; }
     }
 }

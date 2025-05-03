@@ -1,9 +1,11 @@
 ﻿using finalProject.Data;
+using finalProject.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Policy;
 
 namespace finalProject.Controllers
@@ -25,11 +27,7 @@ namespace finalProject.Controllers
         {
             try
             {
-                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty);
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jwtToken = tokenHandler.ReadJwtToken(token);
-                var claims = jwtToken.Claims;
-                int userId = int.Parse(claims.FirstOrDefault(c => c.Type == "id")?.Value);
+                var userId = int.Parse(User.FindFirstValue("id")!);
 
                 var courses = await _db.iS_Compulsories
                    .GroupJoin(
@@ -42,18 +40,52 @@ namespace finalProject.Controllers
                            course.course_Name,
                            course.hours,
                            course.prerequest,
-                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault().grade : null
+                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault()!.grade : null
                        }
                    )
                    .ToListAsync();
-                if (courses != null)
+                List<CourseDTO> courseDTOs = new List<CourseDTO>();
+
+                if (courses.Any())
                 {
-                    return Ok(new ApiResponse
+                    foreach (var course in courses)
                     {
-                        Data = courses,
-                        Message = "Retrive Data Succssfully"
-                    });
+                        if (course.prerequest != "-")
+                        {
+                            
+
+                            var isFound = await _db.StudentSubjects
+                               .AnyAsync(ss => ss.StudentId == userId && ss.Subject!.course_Name == course.prerequest);
+                            if (isFound)
+                            {
+                                courseDTOs.Add(new CourseDTO
+                                {
+                                    Code = course.code!,
+                                    course_Name = course.course_Name!,
+                                    Hours = course.hours!.Value,
+                                    Prerequest = course.prerequest,
+                                    Grade = course.Grade
+                                });
+                            }
+                        }
+                        else
+                        {
+                            courseDTOs.Add(new CourseDTO
+                            {
+                                Code = course.code!,
+                                course_Name = course.course_Name!,
+                                Hours = course.hours!.Value,
+                                Prerequest = course.prerequest,
+                                Grade = course.Grade
+                            });
+                        }
+                    }
+
                 }
+                return Ok(new ApiResponse
+                {
+                    Data = courseDTOs,
+                });
             }
             catch (Exception ex)
             {
@@ -62,10 +94,6 @@ namespace finalProject.Controllers
                     Message = ex.Message
                 });
             }
-            return NotFound(new ApiResponse
-            {
-                Message = "Not Found Any Data",
-            });
         }
 
 
@@ -75,12 +103,7 @@ namespace finalProject.Controllers
         {
             try
             {
-                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty);
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jwtToken = tokenHandler.ReadJwtToken(token);
-                var claims = jwtToken.Claims;
-                int userId = int.Parse(claims.FirstOrDefault(c => c.Type == "id")?.Value);
-
+                var userId = int.Parse(User.FindFirstValue("id")!);
                 var courses = await _db.iS_Electives
                    .GroupJoin(
                        _db.StudentSubjects.Where(ss => ss.StudentId == userId),
@@ -92,11 +115,51 @@ namespace finalProject.Controllers
                            course.course_Name,
                            course.hours,
                            course.prerequest,
-                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault().grade : null
+                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault()!.grade : null
                        }
                    )
                    .ToListAsync();
-                if (courses != null)
+                List<CourseDTO> courseDTOs = new List<CourseDTO>();
+
+                if (courses.Any())
+                {
+                    foreach (var course in courses)
+                    {
+                        if (course.prerequest != "-")
+                        {
+                           
+
+                            var isFound = await _db.StudentSubjects
+                               .AnyAsync(ss => ss.StudentId == userId && ss.Subject.course_Name == course.prerequest);
+                            if (isFound)
+                            {
+                                courseDTOs.Add(new CourseDTO
+                                {
+                                    Code = course.code!,
+                                    course_Name = course.course_Name!,
+                                    Hours = course.hours!.Value,
+                                    Prerequest = course.prerequest,
+                                    Grade = course.Grade
+                                });
+                            }
+                        }
+                        else
+                        {
+                            courseDTOs.Add(new CourseDTO
+                            {
+                                Code = course.code!,
+                                course_Name = course.course_Name!,
+                                Hours = course.hours!.Value,
+                                Prerequest = course.prerequest,
+                                Grade = course.Grade
+                            });
+                        }
+                    }
+                    return Ok(new ApiResponse
+                    {
+                        Data = courseDTOs,
+                    });
+                }
                 {
                     return Ok(new ApiResponse
                     {
@@ -112,10 +175,6 @@ namespace finalProject.Controllers
                     Message = ex.Message
                 });
             }
-            return NotFound(new ApiResponse
-            {
-                Message = "Not Found Any Data",
-            });
         }
     }
 }

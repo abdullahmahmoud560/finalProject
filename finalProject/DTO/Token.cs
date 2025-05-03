@@ -1,10 +1,10 @@
-﻿using finalProject.Data;
+﻿using finalProject.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace finalProject.Models
+namespace finalProject.DTO
 {
     public class Token
     {
@@ -19,23 +19,24 @@ namespace finalProject.Models
         {
             try
             {
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:secretKey"]));
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:secretKey"]!));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
                 var claims = new List<Claim>
                 {
-                    new Claim("id", infoStudnet.Id.ToString()), 
-                    new Claim("email", infoStudnet.Email), 
-                    new Claim("firstName", infoStudnet.FirstName), 
-                    new Claim("lastName", infoStudnet.lastName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) 
+                    new Claim("id", infoStudnet.Id.ToString()),
+                    new Claim("email", infoStudnet.Email!),
+                    new Claim("firstName", infoStudnet.FirstName!),
+                    new Claim("lastName", infoStudnet.lastName!),
+                    new Claim("department", infoStudnet.department!),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
                 var tokeOptions = new JwtSecurityToken(
                     issuer: _configuration["JWT:Issuer"],
                     audience: _configuration["JWT:Audience"],
                     claims: claims,
-                    expires: DateTime.UtcNow.AddHours(10), 
+                    expires: DateTime.UtcNow.AddHours(10),
                     signingCredentials: signinCredentials
                 );
 

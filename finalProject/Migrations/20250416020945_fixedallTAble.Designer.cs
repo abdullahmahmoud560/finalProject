@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using finalProject.Data;
 
@@ -11,9 +12,11 @@ using finalProject.Data;
 namespace finalProject.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20250416020945_fixedallTAble")]
+    partial class fixedallTAble
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -282,8 +285,8 @@ namespace finalProject.Migrations
                     b.Property<string>("department")
                         .HasColumnType("longtext");
 
-                    b.Property<double?>("gpa")
-                        .HasColumnType("double");
+                    b.Property<float?>("gpa")
+                        .HasColumnType("float");
 
                     b.Property<int?>("hours")
                         .HasColumnType("int");
@@ -292,6 +295,9 @@ namespace finalProject.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("lastName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("level")
                         .HasColumnType("longtext");
 
                     b.Property<string>("role")

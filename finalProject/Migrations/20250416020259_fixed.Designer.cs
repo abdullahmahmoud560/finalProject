@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using finalProject.Data;
 
@@ -11,9 +12,11 @@ using finalProject.Data;
 namespace finalProject.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20250416020259_fixed")]
+    partial class @fixed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -282,8 +285,8 @@ namespace finalProject.Migrations
                     b.Property<string>("department")
                         .HasColumnType("longtext");
 
-                    b.Property<double?>("gpa")
-                        .HasColumnType("double");
+                    b.Property<float?>("gpa")
+                        .HasColumnType("float");
 
                     b.Property<int?>("hours")
                         .HasColumnType("int");
@@ -292,6 +295,9 @@ namespace finalProject.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("lastName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("level")
                         .HasColumnType("longtext");
 
                     b.Property<string>("role")
@@ -318,9 +324,17 @@ namespace finalProject.Migrations
                     b.Property<string>("grade")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("ssCode")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int?>("ssId")
+                        .HasColumnType("int");
+
                     b.HasKey("StudentId", "SubjectCode");
 
-                    b.HasIndex("SubjectCode");
+                    b.HasIndex("ssCode");
+
+                    b.HasIndex("ssId");
 
                     b.ToTable("StudentSubjects");
                 });
@@ -352,17 +366,13 @@ namespace finalProject.Migrations
 
             modelBuilder.Entity("finalProject.Models.StudentSubject", b =>
                 {
-                    b.HasOne("finalProject.Models.Student", "Student")
-                        .WithMany("StudentSubjects")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("finalProject.Models.Subject", "Subject")
                         .WithMany("StudentSubjects")
-                        .HasForeignKey("SubjectCode")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ssCode");
+
+                    b.HasOne("finalProject.Models.Student", "Student")
+                        .WithMany("StudentSubjects")
+                        .HasForeignKey("ssId");
 
                     b.Navigation("Student");
 

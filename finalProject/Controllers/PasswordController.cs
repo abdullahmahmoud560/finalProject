@@ -1,4 +1,5 @@
 ﻿using finalProject.Data;
+using finalProject.DTO;
 using finalProject.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -31,22 +32,25 @@ namespace finalProject.Controllers
                 Student? student = await _db.students.SingleOrDefaultAsync(e => e.Email == forget.email);
                 if (student != null)
                 {
-                    
-                    var resetLink = $"https://edu-guide-ai.vercel.app/reset-password?token={Uri.EscapeDataString(student.Token)}";
-                    await _emailService.SendEmailAsync(forget.email, "Reset Your Password",
-                    $"Click here to reset your password: {resetLink}");
+                    var resetLink = $"https://edu-guide-ai.vercel.app/reset-password?token={Uri.EscapeDataString(student.Token!)}";
+                    //await _emailService.SendEmailAsync(forget.email!, "Reset Your Password",
+                    //$"Click here to reset your password: {resetLink}");
+
+                    var passowrd = student.Password;
                     return Ok(new ApiResponse
                     {
                         Message = "Password reset email sent successfully",
-                        Data = forget.email,
                     });
+                }
+
+                else {
+                    return Ok(new ApiResponse { Message = "Not Found this Email"});
                 }
             }
             catch(Exception ex)
             {
                 return Ok(ex.Message);
             }
-            return NotFound("Not Found This Email");
         }
 
         [Authorize]
@@ -61,7 +65,7 @@ namespace finalProject.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
             var claims = jwtToken.Claims;
-            int userId = int.Parse(claims.FirstOrDefault(c => c.Type == "id")?.Value);
+            int userId = int.Parse(claims.FirstOrDefault(c => c.Type == "id")?.Value!);
 
             var userInfo = await _db.students.Where(info => info.Id == userId).ToListAsync();
             userInfo[0].Password = BCrypt.Net.BCrypt.HashPassword(reset.password);

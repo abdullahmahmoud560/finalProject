@@ -1,10 +1,7 @@
 ﻿using System.Security.Claims;
-using finalProject.Data;
-using finalProject.DTO;
-using finalProject.Models;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace finalProject.Controllers
 {
@@ -12,12 +9,11 @@ namespace finalProject.Controllers
     [ApiController]
     public class CalcHourController : ControllerBase
     {
-        private DB _db;
-        private Functions _functions;
-        public CalcHourController(DB db ,Functions functions)
+        private IServiceManager _serviceManager;
+
+        public CalcHourController(IServiceManager serviceManager)
         {
-            _db = db;
-            _functions = functions;
+            _serviceManager = serviceManager;
         }
 
         [Authorize]
@@ -25,61 +21,56 @@ namespace finalProject.Controllers
         public async Task<IActionResult> calculatetotalHours()
         {
             var userId = int.Parse(User.FindFirstValue("id")!);
-            var department = User.FindFirstValue("department");
-            var allSubjects = await _db.StudentSubjects.Where(ss => ss.StudentId == userId).ToListAsync();
+            var department = (await _serviceManager.StudentService.GetByConditionAsync(l=>l.Id == userId)).Select(g=>new { g.department_en , g.department_ar }).FirstOrDefault();
+            var allSubjects = (await _serviceManager.StudentSubjectService.GetByConditionAsync(ss => ss.StudentId == userId)).ToList();
 
             if (allSubjects.Any())
             {
-                var insertHours = await _db.students.Where(s => s.Id == userId).FirstOrDefaultAsync();
+                var insertHours = (await _serviceManager.StudentService.GetByConditionAsync(s => s.Id == userId)).FirstOrDefault();
 
-                if (department == "General")
+                if (department!.department_en == "General")
                 {
-                    var General_Hours = await _functions.CalculateTotalHoursGeneral(allSubjects);
-                    var Faculty_Houes = await _functions.CalculateTotalHoursFaculty(allSubjects);
+                    var General_Hours = await _serviceManager.FunctionService.CalculateTotalHoursGeneral(allSubjects);
+                    var Faculty_Houes = await _serviceManager.FunctionService.CalculateTotalHoursFaculty(allSubjects);
                     insertHours!.hours = General_Hours+Faculty_Houes;
-                    _db.students.Update(insertHours!);
-                    await _db.SaveChangesAsync();
+                    await _serviceManager.StudentService.UpdateStudent(insertHours!);
                     return Ok(new{GenralHours =  General_Hours,FacultyHours = Faculty_Houes});
                 }
-                else if(department == "CS")
+                else if(department!.department_en == "CS")
                 {
-                    var General_Hours = await _functions.CalculateTotalHoursGeneral(allSubjects);
-                    var Faculty_Houes = await _functions.CalculateTotalHoursFaculty(allSubjects);
-                    var CS_Hours = await _functions.CalculateTotalHoursCS(allSubjects);
+                    var General_Hours = await _serviceManager.FunctionService.CalculateTotalHoursGeneral(allSubjects);
+                    var Faculty_Houes = await _serviceManager.FunctionService.CalculateTotalHoursFaculty(allSubjects);
+                    var CS_Hours = await _serviceManager.FunctionService.CalculateTotalHoursCS(allSubjects);
                     insertHours!.hours = General_Hours + Faculty_Houes + CS_Hours;
-                    _db.students.Update(insertHours!);
-                    await _db.SaveChangesAsync();
+                    await _serviceManager.StudentService.UpdateStudent(insertHours!);
                     return Ok(new { GenralHours = General_Hours, FacultyHours = Faculty_Houes,CSHours = CS_Hours });
-                }else if(department == "IS")
+                }else if(department!.department_en == "IS")
                 {
-                    var General_Hours = await _functions.CalculateTotalHoursGeneral(allSubjects);
-                    var Faculty_Houes = await _functions.CalculateTotalHoursFaculty(allSubjects);
-                    var IS_Hours = await _functions.CalculateTotalHoursIS(allSubjects);
+                    var General_Hours = await _serviceManager.FunctionService.CalculateTotalHoursGeneral(allSubjects);
+                    var Faculty_Houes = await _serviceManager.FunctionService.CalculateTotalHoursFaculty(allSubjects);
+                    var IS_Hours = await _serviceManager.FunctionService.CalculateTotalHoursIS(allSubjects);
                     insertHours!.hours = General_Hours + Faculty_Houes + IS_Hours;
-                    _db.students.Update(insertHours!);
-                    await _db.SaveChangesAsync();
+                    await _serviceManager.StudentService.UpdateStudent(insertHours!);
                     return Ok(new { GenralHours = General_Hours, FacultyHours = Faculty_Houes,ISHours = IS_Hours });
-                }else if(department == "IT")
+                }else if(department!.department_en == "IT")
                 {
-                    var General_Hours = await _functions.CalculateTotalHoursGeneral(allSubjects);
-                    var Faculty_Houes = await _functions.CalculateTotalHoursFaculty(allSubjects);
-                    var IT_Hours = await _functions.CalculateTotalHoursIT(allSubjects);
+                    var General_Hours = await _serviceManager.FunctionService.CalculateTotalHoursGeneral(allSubjects);
+                    var Faculty_Houes = await _serviceManager.FunctionService.CalculateTotalHoursFaculty(allSubjects);
+                    var IT_Hours = await _serviceManager.FunctionService.CalculateTotalHoursIT(allSubjects);
                     insertHours!.hours = General_Hours + Faculty_Houes + IT_Hours;
-                    _db.students.Update(insertHours!);
-                    await _db.SaveChangesAsync();
-                    return Ok(new { GenralHours = General_Hours, FacultyHours = Faculty_Houes,CSHours = IT_Hours });
-                }else if(department == "AI")
+                    await _serviceManager.StudentService.UpdateStudent(insertHours!);
+                    return Ok(new { GenralHours = General_Hours, FacultyHours = Faculty_Houes,ITHours = IT_Hours });
+                }else if(department!.department_en == "AI")
                 {
-                    var General_Hours = await _functions.CalculateTotalHoursGeneral(allSubjects);
-                    var Faculty_Houes = await _functions.CalculateTotalHoursFaculty(allSubjects);
-                    var AI_Hours = await _functions.CalculateTotalHoursAI(allSubjects);
+                    var General_Hours = await _serviceManager.FunctionService.CalculateTotalHoursGeneral(allSubjects);
+                    var Faculty_Houes = await _serviceManager.FunctionService.CalculateTotalHoursFaculty(allSubjects);
+                    var AI_Hours = await _serviceManager.FunctionService.CalculateTotalHoursAI(allSubjects);
                     insertHours!.hours = General_Hours + Faculty_Houes + AI_Hours;
-                    _db.students.Update(insertHours!);
-                    await _db.SaveChangesAsync();
+                    await _serviceManager.StudentService.UpdateStudent(insertHours!);
                     return Ok(new { GenralHours = General_Hours, FacultyHours = Faculty_Houes,AIHours = AI_Hours });
                 }
             }
-            return Ok();
+            return Ok(new { GenralHours = 0, FacultyHours = 0 });
         }
     }
 }

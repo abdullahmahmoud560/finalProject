@@ -1,10 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using finalProject.Data;
-using finalProject.DTO;
+﻿using System.Security.Claims;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using static Shared.DataTransferObjects;
 
 namespace finalProject.Controllers
 {
@@ -12,11 +10,11 @@ namespace finalProject.Controllers
     [ApiController]
     public class IT_Requirements : ControllerBase
     {
-        private readonly DB _db;
+        private IServiceManager _serviceManager;
 
-        public IT_Requirements(DB db)
+        public IT_Requirements(IServiceManager serviceManager)
         {
-            _db = db;
+            _serviceManager = serviceManager;
         }
 
         [Authorize]
@@ -27,43 +25,27 @@ namespace finalProject.Controllers
             {
                 var userId = int.Parse(User.FindFirstValue("id")!);
 
-                var courses = await _db.iT_Compulsories
-                   .GroupJoin(
-                       _db.StudentSubjects.Where(ss => ss.StudentId == userId),
-                       course => course.code,
-                       studentSubject => studentSubject.SubjectCode,
-                       (course, studentSubjects) => new
-                       {
-                           course.code,
-                           course.course_Name,
-                           course.hours,
-                           course.prerequest,
-                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault()!.grade : null
-                       }
-                   )
-                   .ToListAsync();
+                var courses = await _serviceManager.CourseService.IT_Compulsories(userId);
                 List<CourseDTO> courseDTOs = new List<CourseDTO>();
                 if (courses.Any())
                 {
                     foreach (var course in courses)
                     {
-                        if (course.prerequest != "-")
+                        if (course.course_Name_en != "-")
                         {
-                            var prerequestCode = await _db.Subjects.Where(s => s.course_Name == course.prerequest)
-                                .Select(s => s.code)
-                                .FirstOrDefaultAsync();
-
-                            var isFound = await _db.StudentSubjects
-                               .AnyAsync(ss => ss.StudentId == userId && ss.SubjectCode == prerequestCode);
-                            if (isFound)
+                            var isFound = (await _serviceManager.StudentSubjectService.GetByConditionAsync
+                               (ss => ss.StudentId == userId && ss.Subject!.course_Name_en == course.prerequest_en && ss.grade != "F")).FirstOrDefault();
+                            if (isFound != null)
                             {
                                 courseDTOs.Add(new CourseDTO
                                 {
                                     Code = course.code!,
-                                    course_Name = course.course_Name!,
+                                    course_Name_en = course.course_Name_en!,
+                                    course_Name_ar = course.course_Name_ar!,
                                     Hours = course.hours!.Value,
-                                    Prerequest = course.prerequest,
-                                    Grade = course.Grade
+                                    prerequest_en = course.prerequest_en,
+                                    prerequest_ar = course.prerequest_ar,
+                                    Grade = course.grade
                                 });
                             }
                         }
@@ -72,10 +54,12 @@ namespace finalProject.Controllers
                             courseDTOs.Add(new CourseDTO
                             {
                                 Code = course.code!,
-                                course_Name = course.course_Name!,
+                                course_Name_en = course.course_Name_en!,
+                                course_Name_ar = course.course_Name_ar!,
                                 Hours = course.hours!.Value,
-                                Prerequest = course.prerequest,
-                                Grade = course.Grade
+                                prerequest_en = course.prerequest_en,
+                                prerequest_ar = course.prerequest_ar,
+                                Grade = course.grade
                             });
                         }
                     }
@@ -101,44 +85,28 @@ namespace finalProject.Controllers
             try
             {
                 var userId = int.Parse(User.FindFirstValue("id")!);
-                var courses = await _db.iT_Electives
-                   .GroupJoin(
-                       _db.StudentSubjects.Where(ss => ss.StudentId == userId),
-                       course => course.code,
-                       studentSubject => studentSubject.SubjectCode,
-                       (course, studentSubjects) => new
-                       {
-                           course.code,
-                           course.course_Name,
-                           course.hours,
-                           course.prerequest,
-                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault()!.grade : null
-                       }
-                   )
-                   .ToListAsync();
+                var courses = await _serviceManager.CourseService.IT_Electives(userId);
                 List<CourseDTO> courseDTOs = new List<CourseDTO>();
 
                 if (courses.Any())
                 {
                     foreach (var course in courses)
                     {
-                        if (course.prerequest != "-")
+                        if (course.prerequest_en != "-")
                         {
-                            var prerequestCode = await _db.Subjects.Where(s => s.course_Name == course.prerequest)
-                                .Select(s => s.code)
-                                .FirstOrDefaultAsync();
-
-                            var isFound = await _db.StudentSubjects
-                               .AnyAsync(ss => ss.StudentId == userId && ss.SubjectCode == prerequestCode);
-                            if (isFound)
+                            var isFound = (await _serviceManager.StudentSubjectService.GetByConditionAsync
+                               (ss => ss.StudentId == userId && ss.Subject!.course_Name_en == course.prerequest_en && ss.grade != "F")).FirstOrDefault();
+                            if (isFound != null)
                             {
                                 courseDTOs.Add(new CourseDTO
                                 {
                                     Code = course.code!,
-                                    course_Name = course.course_Name!,
+                                    course_Name_en = course.course_Name_en!,
+                                    course_Name_ar = course.course_Name_ar!,
                                     Hours = course.hours!.Value,
-                                    Prerequest = course.prerequest,
-                                    Grade = course.Grade
+                                    prerequest_en = course.prerequest_en,
+                                    prerequest_ar = course.prerequest_ar,
+                                    Grade = course.grade
                                 });
                             }
                         }
@@ -147,10 +115,12 @@ namespace finalProject.Controllers
                             courseDTOs.Add(new CourseDTO
                             {
                                 Code = course.code!,
-                                course_Name = course.course_Name!,
+                                course_Name_en = course.course_Name_en!,
+                                course_Name_ar = course.course_Name_ar!,
                                 Hours = course.hours!.Value,
-                                Prerequest = course.prerequest,
-                                Grade = course.Grade
+                                prerequest_en = course.prerequest_en,
+                                prerequest_ar = course.prerequest_ar,
+                                Grade = course.grade
                             });
                         }
                     }

@@ -1,10 +1,8 @@
 ﻿using System.Security.Claims;
-using finalProject.Data;
-using finalProject.DTO;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
+using static Shared.DataTransferObjects;
 
 namespace finalProject.Controllers
 {
@@ -12,34 +10,31 @@ namespace finalProject.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private readonly DB _db;
-        private readonly IConfiguration _configuration;
+        private IServiceManager _serviceManager;
 
-        public ProfileController(DB db, IConfiguration configuration)
+        public ProfileController(IServiceManager serviceManager)
         {
-            _db = db;
-            _configuration = configuration;
+            _serviceManager = serviceManager;
         }
 
         [Authorize]
         [HttpPost("student/update")]
-        public async Task<IActionResult> UpdateProfile(resetPassword profile)
+        public async Task<IActionResult> UpdateProfile(ResetDTO profile)
         {
             if (ModelState.IsValid)
             {
                 if (profile.confirm != null && profile.password !=null)
                 {
                     var userId = int.Parse(User.FindFirstValue("id")!);
-                    var user = await _db.students.FirstOrDefaultAsync(u => u.Id == userId);
+                    var user = (await _serviceManager.StudentService.GetByConditionAsync(u => u.Id == userId)).FirstOrDefault();
 
                     if (user != null)
                     {
                         if (profile.password.Equals(profile.confirm))
                         {
                             user.Password = BCrypt.Net.BCrypt.HashPassword(profile.password);
-                            _db.Update(user);
-                            await _db.SaveChangesAsync();
-                            userInfo info = new userInfo();
+                            await _serviceManager.StudentService.UpdateStudent(user);
+                            UserInformation info = new UserInformation();
                             info.role = user.role!;
                             info.firstName = user.FirstName!;
                             info.lastName = user.lastName!;

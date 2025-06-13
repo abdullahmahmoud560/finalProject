@@ -1,12 +1,8 @@
-﻿using finalProject.Data;
-using finalProject.DTO;
+﻿using System.Security.Claims;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Policy;
+using static Shared.DataTransferObjects;
 
 namespace finalProject.Controllers
 {
@@ -14,11 +10,11 @@ namespace finalProject.Controllers
     [ApiController]
     public class IS_Requirements : ControllerBase
     {
-        private readonly DB _db;
+        private IServiceManager _serviceManager;
 
-        public IS_Requirements(DB db)
+        public IS_Requirements(IServiceManager serviceManager)
         {
-            _db = db;
+            _serviceManager = serviceManager;
         }
 
         [Authorize]
@@ -29,42 +25,28 @@ namespace finalProject.Controllers
             {
                 var userId = int.Parse(User.FindFirstValue("id")!);
 
-                var courses = await _db.iS_Compulsories
-                   .GroupJoin(
-                       _db.StudentSubjects.Where(ss => ss.StudentId == userId),
-                       course => course.code,
-                       studentSubject => studentSubject.SubjectCode,
-                       (course, studentSubjects) => new
-                       {
-                           course.code,
-                           course.course_Name,
-                           course.hours,
-                           course.prerequest,
-                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault()!.grade : null
-                       }
-                   )
-                   .ToListAsync();
+                var courses = await _serviceManager.CourseService.IS_Compulsories(userId);
                 List<CourseDTO> courseDTOs = new List<CourseDTO>();
 
                 if (courses.Any())
                 {
                     foreach (var course in courses)
                     {
-                        if (course.prerequest != "-")
+                        if (course.prerequest_en != "-")
                         {
-                            
-
-                            var isFound = await _db.StudentSubjects
-                               .AnyAsync(ss => ss.StudentId == userId && ss.Subject!.course_Name == course.prerequest);
-                            if (isFound)
+                            var isFound = (await _serviceManager.StudentSubjectService.GetByConditionAsync
+                               (ss => ss.StudentId == userId && ss.Subject!.course_Name_en == course.prerequest_en && ss.grade != "F")).FirstOrDefault();
+                            if (isFound != null)
                             {
                                 courseDTOs.Add(new CourseDTO
                                 {
                                     Code = course.code!,
-                                    course_Name = course.course_Name!,
+                                    course_Name_en = course.course_Name_en!,
+                                    course_Name_ar = course.course_Name_ar!,
                                     Hours = course.hours!.Value,
-                                    Prerequest = course.prerequest,
-                                    Grade = course.Grade
+                                    prerequest_en = course.prerequest_en,
+                                    prerequest_ar = course.prerequest_ar,
+                                    Grade = course.grade
                                 });
                             }
                         }
@@ -73,10 +55,12 @@ namespace finalProject.Controllers
                             courseDTOs.Add(new CourseDTO
                             {
                                 Code = course.code!,
-                                course_Name = course.course_Name!,
+                                course_Name_en = course.course_Name_en!,
+                                course_Name_ar = course.course_Name_ar!,
                                 Hours = course.hours!.Value,
-                                Prerequest = course.prerequest,
-                                Grade = course.Grade
+                                prerequest_en = course.prerequest_en,
+                                prerequest_ar = course.prerequest_ar,
+                                Grade = course.grade
                             });
                         }
                     }
@@ -104,42 +88,30 @@ namespace finalProject.Controllers
             try
             {
                 var userId = int.Parse(User.FindFirstValue("id")!);
-                var courses = await _db.iS_Electives
-                   .GroupJoin(
-                       _db.StudentSubjects.Where(ss => ss.StudentId == userId),
-                       course => course.code,
-                       studentSubject => studentSubject.SubjectCode,
-                       (course, studentSubjects) => new
-                       {
-                           course.code,
-                           course.course_Name,
-                           course.hours,
-                           course.prerequest,
-                           Grade = studentSubjects.Any() ? studentSubjects.FirstOrDefault()!.grade : null
-                       }
-                   )
-                   .ToListAsync();
+                var courses = await _serviceManager.CourseService.IS_Electives(userId);
                 List<CourseDTO> courseDTOs = new List<CourseDTO>();
 
                 if (courses.Any())
                 {
                     foreach (var course in courses)
                     {
-                        if (course.prerequest != "-")
+                        if (course.prerequest_en != "-")
                         {
-                           
 
-                            var isFound = await _db.StudentSubjects
-                               .AnyAsync(ss => ss.StudentId == userId && ss.Subject.course_Name == course.prerequest);
-                            if (isFound)
+
+                            var isFound = (await _serviceManager.StudentSubjectService.GetByConditionAsync
+                               (ss => ss.StudentId == userId && ss.Subject!.course_Name_en == course.prerequest_en && ss.grade != "F")).FirstOrDefault();
+                            if (isFound != null )
                             {
                                 courseDTOs.Add(new CourseDTO
                                 {
                                     Code = course.code!,
-                                    course_Name = course.course_Name!,
+                                    course_Name_en = course.course_Name_en!,
+                                    course_Name_ar = course.course_Name_ar!,
                                     Hours = course.hours!.Value,
-                                    Prerequest = course.prerequest,
-                                    Grade = course.Grade
+                                    prerequest_en = course.prerequest_en,
+                                    prerequest_ar = course.prerequest_ar,
+                                    Grade = course.grade
                                 });
                             }
                         }
@@ -148,10 +120,12 @@ namespace finalProject.Controllers
                             courseDTOs.Add(new CourseDTO
                             {
                                 Code = course.code!,
-                                course_Name = course.course_Name!,
+                                course_Name_en = course.course_Name_en!,
+                                course_Name_ar = course.course_Name_ar!,
                                 Hours = course.hours!.Value,
-                                Prerequest = course.prerequest,
-                                Grade = course.Grade
+                                prerequest_en = course.prerequest_en,
+                                prerequest_ar = course.prerequest_ar,
+                                Grade = course.grade
                             });
                         }
                     }

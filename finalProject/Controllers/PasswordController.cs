@@ -1,45 +1,41 @@
-﻿using finalProject.Data;
-using finalProject.DTO;
-using finalProject.Models;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Mysqlx.Session;
-using System.IdentityModel.Tokens.Jwt;
+using static Shared.DataTransferObjects;
 namespace finalProject.Controllers
 {
     [Route("api/auth")]
     [ApiController]
     public class ResetPasswordController : ControllerBase
     {
-        private readonly DB _db;
-        private readonly EmailService _emailService;
-        private readonly IConfiguration configuration;
-        public ResetPasswordController(DB db, EmailService emailService, IConfiguration configuration)
+       private IServiceManager _serviceManager;
+
+        public ResetPasswordController(IServiceManager serviceManager)
         {
-            _db = db;
-            _emailService = emailService;
-            this.configuration = configuration;
+            _serviceManager = serviceManager;
         }
 
-        
         [HttpPost("forget-password")]
-        public async Task<IActionResult> forgetPassword([FromBody]DTOforgetpassword  forget)
+        public async Task<IActionResult> forgetPassword([FromBody] ForgetDTO forget)
         {
             try
             {
-                Student? student = await _db.students.SingleOrDefaultAsync(e => e.Email == forget.email);
+                var student = (await _serviceManager.StudentService.GetByConditionAsync(e => e.Email == forget.email)).FirstOrDefault();
                 if (student != null)
                 {
-                    var resetLink = $"https://edu-guide-ai.vercel.app/reset-password?token={Uri.EscapeDataString(student.Token!)}";
-                    //await _emailService.SendEmailAsync(forget.email!, "Reset Your Password",
-                    //$"Click here to reset your password: {resetLink}");
+                    var token = _serviceManager.TokenService.GenerateToken(student);
+                    student.Token = token;
+                    await _serviceManager.StudentService.UpdateStudent(student);
+
+                    await _serviceManager.EmailService.ResetPassword(forget.email!, "Reset Password", student.Token!);
 
                     var passowrd = student.Password;
                     return Ok(new ApiResponse
                     {
                         Message = "Password reset email sent successfully",
+                        Data = token,
                     });
                 }
 
@@ -55,26 +51,20 @@ namespace finalProject.Controllers
 
         [Authorize]
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] resetPassword reset)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetDTO reset)
         {
-            if(reset.password != reset.confirm)
+            if (reset.password != reset.confirm)
             {
-                return BadRequest("Not Match Password");
+                return BadRequest("Don't Match Password");
             }
-            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token);
-            var claims = jwtToken.Claims;
-            int userId = int.Parse(claims.FirstOrDefault(c => c.Type == "id")?.Value!);
-
-            var userInfo = await _db.students.Where(info => info.Id == userId).ToListAsync();
-            userInfo[0].Password = BCrypt.Net.BCrypt.HashPassword(reset.password);
-            await _db.SaveChangesAsync();
+            var UserID = int.Parse(User.FindFirstValue("id")!);
+            var userInfo = (await _serviceManager.StudentService.GetByConditionAsync(info => info.Id == UserID)).FirstOrDefault();
+            userInfo!.Password = BCrypt.Net.BCrypt.HashPassword(reset.password);
+            await _serviceManager.StudentService.UpdateStudent(userInfo);
             return Ok(new ApiResponse
             {
                 Message = "Password Changed successfully"
             });
         }
-
     }
 }

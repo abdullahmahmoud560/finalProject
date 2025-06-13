@@ -1,46 +1,25 @@
-﻿using finalProject.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
-using System;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+﻿using Application.Services;
+using Domain.Interfaces;
+using finalProject.Repositories;
+using Infrastructure.Extensions;
 using Microsoft.OpenApi.Models;
-using finalProject.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
-
-
-builder.Services.AddDbContext<DB>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("Connection"),
-        new MySqlServerVersion(new Version(8, 0, 21))
-    ));
+IConfiguration configuration = builder.Configuration;   
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHttpClient(); // إضافة HttpClient
-builder.Services.AddScoped<Token>();
-
-builder.Services.AddAuthentication(options =>
+builder.Services.AddHttpClient();
+builder.Services.ConfigureRepositoryManager();
+builder.Services.ConfigureServiceManager();
+builder.Services.ConfigureJWT(configuration);
+builder.Services.ConfigureSqlContext(builder.Configuration);
+builder.Services.AddScoped<IRepositoryManager, RepositoryManager>();
+builder.Services.AddHttpClient<ChatPDFService>(client =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secretKey"]!))
-    };
+    client.Timeout = TimeSpan.FromMinutes(5);
 });
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -73,12 +52,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCors",
-            builder => builder.WithOrigins("https://edu-guide-ai.vercel.app", "https://guido-hazel.vercel.app","http://localhost:4200") 
+            builder => builder.WithOrigins("http://localhost:4200", "https://guido-three.vercel.app") 
                               .AllowAnyMethod()
     .WithHeaders("Authorization", "Content-Type"));
 });
-builder.Services.AddScoped<Functions>();
-builder.Services.AddTransient<EmailService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpsRedirection(options =>
 {
@@ -87,11 +64,12 @@ builder.Services.AddHttpsRedirection(options =>
 
 
 var app = builder.Build();
-app.UseHttpsRedirection(); 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 app.UseCors("MyCors");
+app.MapControllers();
 app.Run();

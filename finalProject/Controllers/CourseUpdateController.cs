@@ -1,10 +1,9 @@
 ﻿using System.Security.Claims;
-using finalProject.Data;
-using finalProject.DTO;
-using finalProject.Models;
+using Application.Interfaces;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using static Shared.DataTransferObjects;
 
 namespace finalProject.Controllers
 {
@@ -12,16 +11,16 @@ namespace finalProject.Controllers
     [ApiController]
     public class CourseUpdateController : ControllerBase
     {
-        private readonly DB _db;
+        private IServiceManager _serviceManager;
 
-        public CourseUpdateController(DB db)
+        public CourseUpdateController(IServiceManager serviceManager)
         {
-            _db = db;
+            _serviceManager = serviceManager;
         }
 
         [Authorize]
         [HttpPost("courses/update")]
-        public async Task<IActionResult> UpdateAndFetchSubjects(DTOupdateSubject dTOupdate)
+        public async Task<IActionResult> UpdateAndFetchSubjects(UpdateSubjectDTO dTOupdate)
         {
             try
             {
@@ -35,15 +34,15 @@ namespace finalProject.Controllers
 
                 int userId = int.Parse(User.FindFirstValue("id")!);
 
-                var existingSubject = await _db.StudentSubjects.FirstOrDefaultAsync
-                    (ss => ss.StudentId == userId && ss.SubjectCode == dTOupdate.code);
+                var existingSubject = (await _serviceManager.StudentSubjectService.GetByConditionAsync
+                    (ss => ss.StudentId == userId && ss.SubjectCode == dTOupdate.code)).FirstOrDefault();
 
                 if (existingSubject != null)
                 {
                     if (dTOupdate.grade != null)
                     {
                         existingSubject.grade = dTOupdate.grade;
-                        _db.StudentSubjects.Update(existingSubject);
+                        await _serviceManager.StudentSubjectService.UpdateStudentSubject(existingSubject);
                     }
                 }
                 else
@@ -56,11 +55,9 @@ namespace finalProject.Controllers
                             SubjectCode = dTOupdate.code,
                             grade = dTOupdate.grade
                         };
-                        await _db.StudentSubjects.AddAsync(studentSubject);
+                        await _serviceManager.StudentSubjectService.AddStudentSubject(studentSubject);
                     }
                 }
-                await _db.SaveChangesAsync();
-
                 return Ok(new ApiResponse
                 {
                     Message = "Updated Successfully.",
@@ -77,7 +74,7 @@ namespace finalProject.Controllers
 
         [Authorize]
         [HttpPost("Update-Department")]
-        public async Task<IActionResult> updateDepartment(UpdateDepartmentDTO dto)
+        public async Task<IActionResult> updateDepartment(UpdateDepartment dto)
         {
             try
             {
@@ -89,7 +86,7 @@ namespace finalProject.Controllers
                     });
                 }
                 int userId = int.Parse(User.FindFirstValue("id")!);
-                var student = await _db.students.FindAsync(userId);
+                var student = (await _serviceManager.StudentService.GetByConditionAsync(l=>l.Id == userId)).FirstOrDefault();
                 if (student == null)
                 {
                     return NotFound(new ApiResponse
@@ -97,13 +94,28 @@ namespace finalProject.Controllers
                         Message = "Student not found"
                     });
                 }
+                student.department_en = dto.DepartmentName;
+                switch (student.department_en)
+                {
+                    case "CS":
+                        student.department_ar = "علوم الحاسب";
+                        break;
+                    case "IT":
+                        student.department_ar = "تكنولوجيا المعلومات";
+                        break;
+                    case "IS":
+                        student.department_ar = "نظم المعلومات";
+                        break;
+                    case "AI":
+                        student.department_ar = "الذكاء الإصطناعي";
+                        break;
 
-                student.department = dto.DepartmentName;
-                _db.students.Update(student);
-                await _db.SaveChangesAsync();
+                }
+                await _serviceManager.StudentService.UpdateStudent(student);
                 return Ok(new ApiResponse
                 {
-                    Message = "Department updated successfully."
+                    Message = "Department updated successfully.",
+                    Data = student.department_en
                 });
             }
             catch (Exception ex)
